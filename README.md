@@ -1,8 +1,16 @@
-# Ergasia2
+# E-Shop Simulation
 
-## Files Description
+Αυτό το αποθετήριο περιέχει κώδικα που προσομοιώνει ένα σύστημα e-shop όπου πολλοί πελάτες παραγγέλνουν προϊόντα. Ο κώδικας περιλαμβάνει:
+- Διαχείριση καταλόγου προϊόντων
+- Επεξεργασία παραγγελιών με χρήση διεργασιών και pipes
+- Στατιστικά αναφορικά με επιτυχημένες και αποτυχημένες παραγγελίες
 
-- **main.c**: The main source code file for the project.
-- **Makefile**: Script to automate the build process.
-- **utils.c**: Utility functions used in the project.
-- **README.md**: This file, providing an overview of the project.
+## Αρχεία
+- `main.c`: Πηγαίος κώδικας της προσομοίωσης
+- `functions.h`: Δηλώσεις συναρτήσεων
+- `Makefile`: Οδηγίες για μεταγλώττιση και εκτέλεση
+
+## Τρόπος χρήσης
+1. Μεταγλώττιση:
+   ```bash
+   make
