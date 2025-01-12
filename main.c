@@ -1,17 +1,17 @@
 int main() {
-    // Initialize catalog and pipes
+    // Αρχικοποίηση καταλόγου και σωλήνων
     initializeCatalog();
-    int customer_pipes[NUM_CUSTOMERS][2];           // Pipes for communication with customers
-    int random_product_pipes[NUM_CUSTOMERS][2];     // Pipes for sending random product index
+    int customer_pipes[NUM_CUSTOMERS][2];           // Σωλήνες για επικοινωνία με πελάτες
+    int random_product_pipes[NUM_CUSTOMERS][2];     // Σωλήνες για αποστολή τυχαίου δείκτη προϊόντος
 
     for (int i = 0; i < NUM_CUSTOMERS; i++) {
-        // Create pipes for communication with each customer
+        // Δημιουργία σωλήνων για επικοινωνία με κάθε πελάτη
         if (pipe(customer_pipes[i]) == -1 || pipe(random_product_pipes[i]) == -1) {
             perror("Pipe creation failed");
             exit(EXIT_FAILURE);
         }
 
-        // Fork for each customer
+        // Δημιουργία διεργασίας για κάθε πελάτη
         pid_t pid = fork();
 
         if (pid == -1) {
@@ -20,62 +20,62 @@ int main() {
         }
 
         if (pid == 0) {
-            // Child process (customer)
-            close(customer_pipes[i][0]);             // Close read end of the order pipe
-            close(random_product_pipes[i][1]);       // Close write end of the random product pipe
+            // Διεργασία παιδιού (πελάτης)
+            close(customer_pipes[i][0]);             // Κλείσιμο άκρης ανάγνωσης του σωλήνα παραγγελιών
+            close(random_product_pipes[i][1]);       // Κλείσιμο άκρης εγγραφής του σωλήνα τυχαίων προϊόντων
 
             for (int j = 0; j < NUM_ORDERS_PER_CUSTOMER; j++) {
                 int product_index;
-                read(random_product_pipes[i][0], &product_index, sizeof(int)); // Receive random product index
+                read(random_product_pipes[i][0], &product_index, sizeof(int)); // Λήψη τυχαίου δείκτη προϊόντος
 
-                // Sleep for PROCESSING_TIME seconds to simulate processing time
+                // Αναμονή για PROCESSING_TIME δευτερόλεπτα για προσομοίωση χρόνου επεξεργασίας
                 sleep(PROCESSING_TIME);
 
-                write(customer_pipes[i][1], &product_index, sizeof(int));      // Send order to e-shop
+                write(customer_pipes[i][1], &product_index, sizeof(int));      // Αποστολή παραγγελίας στο e-shop
 
                 float total_cost;
                 int success;
 
-                read(customer_pipes[i][1], &success, sizeof(int));         // Receive order result
-                read(customer_pipes[i][1], &total_cost, sizeof(float));    // Receive total cost
+                read(customer_pipes[i][1], &success, sizeof(int));         // Λήψη αποτελέσματος παραγγελίας
+                read(customer_pipes[i][1], &total_cost, sizeof(float));    // Λήψη συνολικού κόστους
 
-                // Sleep for 1 second between orders
+                // Αναμονή για 1 δευτερόλεπτο μεταξύ των παραγγελιών
                 sleep(1);
             }
 
-            close(customer_pipes[i][1]);           // Close write end of the order pipe
-            close(random_product_pipes[i][0]);     // Close read end of the random product pipe
+            close(customer_pipes[i][1]);           // Κλείσιμο άκρης εγγραφής του σωλήνα παραγγελιών
+            close(random_product_pipes[i][0]);     // Κλείσιμο άκρης ανάγνωσης του σωλήνα τυχαίων προϊόντων
             exit(EXIT_SUCCESS);
         } else {
-            // Parent process (e-shop)
-            close(customer_pipes[i][1]);               // Close write end of the order pipe
-            close(random_product_pipes[i][0]);         // Close read end of the random product pipe
+            // Διεργασία γονέα (e-shop)
+            close(customer_pipes[i][1]);               // Κλείσιμο άκρης εγγραφής του σωλήνα παραγγελιών
+            close(random_product_pipes[i][0]);         // Κλείσιμο άκρης ανάγνωσης του σωλήνα τυχαίων προϊόντων
 
             for (int j = 0; j < NUM_ORDERS_PER_CUSTOMER; j++) {
-                int product_index = rand() % NUM_PRODUCTS; // Randomly choose a product
-                write(random_product_pipes[i][1], &product_index, sizeof(int)); // Send random product index
+                int product_index = rand() % NUM_PRODUCTS; // Επιλογή τυχαίου προϊόντος
+                write(random_product_pipes[i][1], &product_index, sizeof(int)); // Αποστολή τυχαίου δείκτη προϊόντος
 
-                // Sleep for PROCESSING_TIME seconds to simulate processing time
+                // Αναμονή για PROCESSING_TIME δευτερόλεπτα για προσομοίωση χρόνου επεξεργασίας
                 sleep(PROCESSING_TIME);
 
                 float total_cost;
                 int success;
 
-                // Process the order
+                // Επεξεργασία παραγγελίας
                 processOrder(i + 1, product_index, &success, &total_cost);
 
-                // Send order result back to the customer
+                // Αποστολή αποτελέσματος παραγγελίας πίσω στον πελάτη
                 write(customer_pipes[i][0], &success, sizeof(int));
                 write(customer_pipes[i][0], &total_cost, sizeof(float));
             }
 
-            close(customer_pipes[i][0]);           // Close read end of the order pipe
-            close(random_product_pipes[i][1]);     // Close write end of the random product pipe
-            wait(NULL); // Wait for the child process to finish
+            close(customer_pipes[i][0]);           // Κλείσιμο άκρης ανάγνωσης του σωλήνα παραγγελιών
+            close(random_product_pipes[i][1]);     // Κλείσιμο άκρης εγγραφής του σωλήνα τυχαίων προϊόντων
+            wait(NULL); // Αναμονή για την ολοκλήρωση της διεργασίας παιδιού
         }
     }
 
-    // Print the summary report
+    // Εκτύπωση αναφοράς συνοπτικών στοιχείων
     printf("\nSummary Report:\n");
     int total_successful_orders = 0;
     int total_failed_orders = 0;
@@ -95,8 +95,8 @@ int main() {
     printf("Total Failed Orders: %d\n", total_failed_orders);
     printf("Total Cost of All Orders: %.2f\n", total_cost);
 
-    // Print the list of customers not served
-    printf("\nCustomers Not Served:\n");
+    // Εκτύπωση λίστας πελατών που δεν εξυπηρετήθηκαν
+    printf("\nΠελάτες που δεν εξυπηρετήθηκαν:\n");
     for (int i = 0; i < NUM_CUSTOMERS; i++) {
         if (customers_not_served[i]) {
             printf("Customer %d\n", i + 1);
