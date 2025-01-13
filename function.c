@@ -1,7 +1,7 @@
 include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Fuction.h"
+#include "Function.h"
 
 // Καθολικός κατάλογος προϊόντων
 Product catalog[NUM_PRODUCTS];
